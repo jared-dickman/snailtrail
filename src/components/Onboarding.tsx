@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LocationInput } from "@/components/LocationInput";
 import { Badge } from "@/components/ui/badge";
-import { Fish, MapPin, Calendar, Sparkles, Plus, Check, ArrowRight, Home } from "lucide-react";
+import { Fish, MapPin, Calendar, Sparkles, Check, ArrowRight, Home } from "lucide-react";
 import type { ServiceLocation } from "@/types/location";
 import type { PlaceResult } from "@/types/maps";
 import type { HomeBase } from "@/types/settings";

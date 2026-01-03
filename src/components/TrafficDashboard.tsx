@@ -236,7 +236,7 @@ export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDas
         {/* Stops List */}
         <ScrollArea className="flex-1">
           <div className="space-y-2">
-            {stops.map((stop, i) => (
+            {stops.map((stop) => (
               <div
                 key={stop.location.id}
                 className={`p-3 rounded-lg border transition-all ${

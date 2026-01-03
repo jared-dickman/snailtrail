@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import { Camera, Fish, Droplets, Plus, Sparkles, Bot } from 'lucide-react';
+import { Camera, Fish, Droplets, Plus, Sparkles } from 'lucide-react';
 import type { ServiceLocation, TabValue } from '@/types/location';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -25,7 +25,7 @@ const PRIORITIES = [
   { value: 'medium', label: 'Medium', color: 'bg-yellow-500' },
   { value: 'low', label: 'Low', color: 'bg-green-500' },
 ];
-const TANK_TYPES = ['freshwater', 'saltwater', 'reef', 'brackish', 'pond'] as const;
+const TANK_TYPES = ['freshwater', 'saltwater', 'reef'] as const;
 const COMMON_FISH = ['Clownfish', 'Tang', 'Wrasse', 'Angelfish', 'Damsel', 'Goby', 'Blenny', 'Chromis'];
 
 interface LocationModalProps {
@@ -256,7 +256,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                         if (checked) {
                           setFormData({
                             ...formData,
-                            serviceSchedule: { ...formData.serviceSchedule, preferredDay: day }
+                            serviceSchedule: { frequency: 'weekly', ...formData.serviceSchedule, preferredDay: day }
                           });
                         }
                       }}
@@ -277,6 +277,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                   onChange={(e) => setFormData({
                     ...formData,
                     serviceSchedule: {
+                      frequency: 'weekly',
                       ...formData.serviceSchedule,
                       timeWindow: { ...formData.serviceSchedule?.timeWindow, open: e.target.value, close: formData.serviceSchedule?.timeWindow?.close || '17:00' }
                     }
@@ -290,6 +291,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                   onChange={(e) => setFormData({
                     ...formData,
                     serviceSchedule: {
+                      frequency: 'weekly',
                       ...formData.serviceSchedule,
                       timeWindow: { ...formData.serviceSchedule?.timeWindow, open: formData.serviceSchedule?.timeWindow?.open || '09:00', close: e.target.value }
                     }
