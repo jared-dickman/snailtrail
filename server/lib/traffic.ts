@@ -1,6 +1,18 @@
 /**
- * Traffic API integrations - Google Routes API + TomTom Traffic Flow
+ * Traffic API integrations - Google Routes API + TomTom + HERE
  */
+
+// Traffic thresholds (ratio of actual vs free-flow time)
+const LIGHT_THRESHOLD = 1.2;
+const MODERATE_THRESHOLD = 1.5;
+const FLOW_LIGHT_THRESHOLD = 1.15;
+const FLOW_MODERATE_THRESHOLD = 1.3;
+const SECONDS_PER_MINUTE = 60;
+
+function parseCoords(coord: string): [number, number] {
+  const [lat, lng] = coord.split(",").map(Number);
+  return [lat, lng];
+}
 
 export interface GoogleTrafficResult {
   duration: number;
@@ -33,20 +45,17 @@ export interface TrafficResponse {
   };
 }
 
-function getTrafficCondition(
-  duration: number,
-  durationInTraffic: number
-): "light" | "moderate" | "heavy" {
+function getTrafficCondition(duration: number, durationInTraffic: number): "light" | "moderate" | "heavy" {
   const ratio = durationInTraffic / duration;
-  if (ratio < 1.2) return "light";
-  if (ratio < 1.5) return "moderate";
+  if (ratio < LIGHT_THRESHOLD) return "light";
+  if (ratio < MODERATE_THRESHOLD) return "moderate";
   return "heavy";
 }
 
 function getTrafficLevel(ratio: number): string {
-  if (ratio < 1.15) return "free flow";
-  if (ratio < 1.3) return "light";
-  if (ratio < 1.5) return "moderate";
+  if (ratio < FLOW_LIGHT_THRESHOLD) return "free flow";
+  if (ratio < FLOW_MODERATE_THRESHOLD) return "light";
+  if (ratio < MODERATE_THRESHOLD) return "moderate";
   return "heavy";
 }
 
@@ -61,9 +70,8 @@ export async function fetchGoogleTraffic(
   }
 
   const url = "https://routes.googleapis.com/directions/v2:computeRoutes";
-
-  const [originLat, originLng] = origin.split(",").map(Number);
-  const [destLat, destLng] = destination.split(",").map(Number);
+  const [originLat, originLng] = parseCoords(origin);
+  const [destLat, destLng] = parseCoords(destination);
 
   const body = {
     origin: {
@@ -122,7 +130,7 @@ export async function fetchTomTomTraffic(
     return null;
   }
 
-  const [lat, lng] = origin.split(",").map(Number);
+  const [lat, lng] = parseCoords(origin);
 
   // Flow Segment Data API - gets traffic for road segment at location
   const url = `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?point=${lat},${lng}&key=${apiKey}`;
@@ -155,8 +163,8 @@ export async function fetchHereTraffic(
     return null;
   }
 
-  const [originLat, originLng] = origin.split(",").map(Number);
-  const [destLat, destLng] = destination.split(",").map(Number);
+  const [originLat, originLng] = parseCoords(origin);
+  const [destLat, destLng] = parseCoords(destination);
 
   // HERE Routing API v8 with traffic
   const url = `https://router.hereapi.com/v8/routes?transportMode=car&origin=${originLat},${originLng}&destination=${destLat},${destLng}&return=summary&apiKey=${apiKey}`;
@@ -201,15 +209,15 @@ export async function getTrafficData(
   let trafficLevel = "unknown";
 
   if (google) {
-    estimatedMinutes = Math.round(google.durationInTraffic / 60);
+    estimatedMinutes = Math.round(google.durationInTraffic / SECONDS_PER_MINUTE);
     trafficLevel = google.trafficCondition;
   } else if (here) {
     provider = "here";
-    estimatedMinutes = Math.round(here.durationInTraffic / 60);
+    estimatedMinutes = Math.round(here.durationInTraffic / SECONDS_PER_MINUTE);
     trafficLevel = here.trafficCondition;
   } else if (tomtom) {
     provider = "tomtom";
-    estimatedMinutes = Math.round(tomtom.currentTravelTime / 60);
+    estimatedMinutes = Math.round(tomtom.currentTravelTime / SECONDS_PER_MINUTE);
     const ratio = tomtom.currentTravelTime / (tomtom.freeFlowTravelTime || 1);
     trafficLevel = getTrafficLevel(ratio);
   }

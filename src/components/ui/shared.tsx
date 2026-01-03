@@ -84,16 +84,6 @@ export function FormField({ icon: Icon, label, children, className }: FormFieldP
   );
 }
 
-// Info row for detail views - consolidated from LocationModal details tab
-export function InfoRow({ label, value, className }: { label: string; value: ReactNode; className?: string }) {
-  return (
-    <div className={cn('flex justify-between py-2 border-b', className)}>
-      <span className="text-muted-foreground">{label}</span>
-      <span>{value}</span>
-    </div>
-  );
-}
-
 // Empty state with ascii art - consolidated from LocationList & TrafficDashboard
 interface EmptyStateProps {
   icon?: LucideIcon;
