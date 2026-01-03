@@ -51,55 +51,107 @@ export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDas
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [routeActive, setRouteActive] = useState(false);
 
-  // Simulate fetching traffic data
+  // Fetch real traffic data from API
   const fetchTrafficData = useCallback(async () => {
     if (locations.length === 0) return;
 
     setLoading(true);
 
-    // Simulate API call delay
-    await new Promise((r) => setTimeout(r, 800));
-
     const now = new Date();
     let cumulativeMinutes = 0;
+    const trafficStops: TrafficStop[] = [];
 
-    const trafficStops: TrafficStop[] = locations.map((loc, i) => {
-      // Simulate realistic traffic data
-      const baseTime = 15 + Math.random() * 25;
-      const trafficMultiplier = 1 + Math.random() * 0.5;
-      const travelTime = Math.round(baseTime * trafficMultiplier);
-      cumulativeMinutes += travelTime;
-
-      const eta = new Date(now.getTime() + cumulativeMinutes * 60000);
-      const trafficLevels: TrafficLevel[] = ["low", "moderate", "heavy", "severe"];
-      const trafficLevel = trafficLevels[Math.floor(Math.random() * 3)]; // Mostly good traffic
-
-      const incidents: string[] = [];
-      if (trafficLevel === "heavy" || trafficLevel === "severe") {
-        const incidentTypes = [
-          "Construction ahead",
-          "Minor accident reported",
-          "Heavy merge traffic",
-          "Road work in progress",
-        ];
-        incidents.push(incidentTypes[Math.floor(Math.random() * incidentTypes.length)]);
-      }
-
-      return {
-        location: loc,
-        eta: eta.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
-        etaMinutes: cumulativeMinutes,
-        distance: `${(3 + Math.random() * 15).toFixed(1)} mi`,
-        trafficLevel,
-        status: i < currentStopIndex ? "completed" : i === currentStopIndex ? "current" : "upcoming",
-        incidents,
-      };
+    // Build ordered list of points: homeBase (if exists) + all locations
+    const points: { lat: number; lng: number; location?: ServiceLocation }[] = [];
+    if (homeBase) {
+      points.push({ lat: homeBase.lat, lng: homeBase.lng });
+    }
+    locations.forEach((loc) => {
+      points.push({ lat: loc.lat, lng: loc.lng, location: loc });
     });
+
+    // Fetch traffic for each leg of the journey
+    for (let i = 0; i < points.length - 1; i++) {
+      const origin = points[i];
+      const dest = points[i + 1];
+
+      if (!dest.location) continue; // Skip if no destination location
+
+      try {
+        const params = new URLSearchParams({
+          origin: `${origin.lat},${origin.lng}`,
+          destination: `${dest.lat},${dest.lng}`,
+        });
+
+        const response = await fetch(`/api/traffic?${params}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const estimatedMinutes = data.recommended?.estimatedMinutes || 20;
+          const trafficLevel = mapTrafficLevel(data.recommended?.trafficLevel || "unknown");
+          const distanceKm = data.google?.distance ? data.google.distance / 1000 : 10;
+          const distanceMi = (distanceKm * 0.621371).toFixed(1);
+
+          cumulativeMinutes += estimatedMinutes;
+          const eta = new Date(now.getTime() + cumulativeMinutes * 60000);
+
+          trafficStops.push({
+            location: dest.location,
+            eta: eta.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+            etaMinutes: cumulativeMinutes,
+            distance: `${distanceMi} mi`,
+            trafficLevel,
+            status: trafficStops.length < currentStopIndex ? "completed" : trafficStops.length === currentStopIndex ? "current" : "upcoming",
+            incidents: trafficLevel === "heavy" || trafficLevel === "severe" ? ["Heavy traffic reported"] : undefined,
+          });
+        } else {
+          // Fallback to estimate if API fails
+          const fallbackMinutes = 20;
+          cumulativeMinutes += fallbackMinutes;
+          const eta = new Date(now.getTime() + cumulativeMinutes * 60000);
+
+          trafficStops.push({
+            location: dest.location,
+            eta: eta.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+            etaMinutes: cumulativeMinutes,
+            distance: "~10 mi",
+            trafficLevel: "low",
+            status: trafficStops.length < currentStopIndex ? "completed" : trafficStops.length === currentStopIndex ? "current" : "upcoming",
+          });
+        }
+      } catch {
+        // Network error - use fallback
+        const fallbackMinutes = 20;
+        cumulativeMinutes += fallbackMinutes;
+        const eta = new Date(now.getTime() + cumulativeMinutes * 60000);
+
+        trafficStops.push({
+          location: dest.location,
+          eta: eta.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+          etaMinutes: cumulativeMinutes,
+          distance: "~10 mi",
+          trafficLevel: "low",
+          status: trafficStops.length < currentStopIndex ? "completed" : trafficStops.length === currentStopIndex ? "current" : "upcoming",
+        });
+      }
+    }
 
     setStops(trafficStops);
     setLastUpdate(new Date());
     setLoading(false);
-  }, [locations, currentStopIndex]);
+  }, [locations, homeBase, currentStopIndex]);
+
+  // Map API traffic level to UI traffic level
+  function mapTrafficLevel(level: string): TrafficLevel {
+    const mapping: Record<string, TrafficLevel> = {
+      "free flow": "low",
+      "light": "low",
+      "moderate": "moderate",
+      "heavy": "heavy",
+      "severe": "severe",
+    };
+    return mapping[level.toLowerCase()] || "moderate";
+  }
 
   // Initial fetch and auto-refresh
   useEffect(() => {
