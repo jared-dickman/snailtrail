@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PriorityDot, ServiceDueBadge, EmptyState } from '@/components/ui/shared';
+import { getDaysUntil } from '@/lib/utils';
 import type { ServiceLocation } from '@/types/location';
 
 type SortOption = 'name' | 'nextService' | 'priority';
@@ -14,28 +15,6 @@ interface LocationListProps {
   onSelect: (location: ServiceLocation) => void;
   onCall?: (phone: string) => void;
   onNavigate?: (location: ServiceLocation) => void;
-}
-
-function getDaysUntil(date?: Date): number | null {
-  if (!date) return null;
-  const diff = new Date(date).getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function ServiceBadge({ location }: { location: ServiceLocation }) {
-  const days = getDaysUntil(location.nextService);
-  if (days === null) return null;
-
-  if (days < 0) return <Badge variant="destructive" className="text-xs">{Math.abs(days)}d overdue</Badge>;
-  if (days === 0) return <Badge className="bg-yellow-500 text-xs">Today</Badge>;
-  if (days <= 2) return <Badge variant="secondary" className="text-xs">In {days}d</Badge>;
-  return null;
-}
-
-function PriorityDot({ priority }: { priority?: ServiceLocation['priority'] }) {
-  if (!priority) return null;
-  const colors = { high: 'bg-red-500', medium: 'bg-yellow-500', low: 'bg-green-500' };
-  return <span className={`w-2 h-2 rounded-full ${colors[priority]} shrink-0`} />;
 }
 
 export function LocationList({ locations, onSelect, onCall, onNavigate }: LocationListProps) {
@@ -150,10 +129,7 @@ export function LocationList({ locations, onSelect, onCall, onNavigate }: Locati
       {/* List */}
       <ScrollArea className="flex-1">
         {filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <pre className="text-2xl mb-2">{`><(((*>`}</pre>
-            <p>No locations found</p>
-          </div>
+          <EmptyState ascii={`><(((*>`} message="No locations found" className="py-12" />
         ) : (
           <div className="divide-y">
             {filtered.map(location => (
@@ -167,7 +143,7 @@ export function LocationList({ locations, onSelect, onCall, onNavigate }: Locati
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium truncate">{location.name}</span>
-                      <ServiceBadge location={location} />
+                      <ServiceDueBadge nextService={location.nextService} />
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{location.address}</p>
                     {location.tankInfo && (

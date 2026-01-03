@@ -1,6 +1,7 @@
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useCallback, useState } from "react";
 import type { ServiceLocation } from "@/types/location";
+import { PRIORITY_HEX_COLORS } from "@/lib/constants";
 
 interface MapViewProps {
   locations: ServiceLocation[];
@@ -18,13 +19,7 @@ const containerStyle = {
 const defaultCenter = { lat: 40.22, lng: -74.42 }; // Central NJ
 
 function getMarkerIcon(location: ServiceLocation, isSelected: boolean): google.maps.Symbol | undefined {
-  const colors = {
-    high: '#ef4444',
-    medium: '#eab308',
-    low: '#22c55e',
-    default: '#3b82f6',
-  };
-  const color = colors[location.priority || 'default'];
+  const color = PRIORITY_HEX_COLORS[location.priority || 'default'];
 
   return {
     path: google.maps.SymbolPath.CIRCLE,

@@ -9,24 +9,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
+import { PriorityDot, TankTypeIcon, InfoRow, EmptyState } from '@/components/ui/shared';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import { Camera, Fish, Droplets, Plus, Sparkles } from 'lucide-react';
+import { Camera, Plus, Sparkles, Droplets } from 'lucide-react';
 import type { ServiceLocation, TabValue } from '@/types/location';
-
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-const FREQUENCIES = [
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Bi-weekly (Every 2 weeks)' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'custom', label: 'Custom interval' },
-];
-const PRIORITIES = [
-  { value: 'high', label: 'High', color: 'bg-red-500' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-500' },
-  { value: 'low', label: 'Low', color: 'bg-green-500' },
-];
-const TANK_TYPES = ['freshwater', 'saltwater', 'reef'] as const;
-const COMMON_FISH = ['Clownfish', 'Tang', 'Wrasse', 'Angelfish', 'Damsel', 'Goby', 'Blenny', 'Chromis'];
+import { DAYS_OF_WEEK, FREQUENCIES, PRIORITIES, TANK_TYPES, COMMON_FISH, EQUIPMENT_LIST } from '@/lib/constants';
+import { formatDate, getDaysUntil } from '@/lib/utils';
 
 interface LocationModalProps {
   location: ServiceLocation | null;
@@ -38,26 +26,9 @@ interface LocationModalProps {
   onSkipUntil: (id: string, date: Date) => void;
 }
 
-function formatDate(date?: Date): string {
-  if (!date) return 'N/A';
-  return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function getDaysUntil(date?: Date): number | null {
-  if (!date) return null;
-  const diff = new Date(date).getTime() - Date.now();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
 function StatusBadge({ status }: { status: ServiceLocation['status'] }) {
   const variants = { active: 'default', paused: 'secondary', inactive: 'destructive' } as const;
   return <Badge variant={variants[status]}>{status}</Badge>;
-}
-
-function PriorityBadge({ priority }: { priority?: ServiceLocation['priority'] }) {
-  if (!priority) return null;
-  const colors = { high: 'bg-red-500', medium: 'bg-yellow-500', low: 'bg-green-500' };
-  return <span className={`inline-block w-2 h-2 rounded-full ${colors[priority]}`} />;
 }
 
 function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUntil, onClose }: {
@@ -98,7 +69,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
       {/* Header Info */}
       <div className="px-1 pb-4 border-b">
         <div className="flex items-center gap-2 mb-2">
-          <PriorityBadge priority={location.priority} />
+          <PriorityDot priority={location.priority} />
           <StatusBadge status={location.status} />
           {location.tankInfo && (
             <Badge variant="outline">{location.tankInfo.gallons}gal {location.tankInfo.type}</Badge>
@@ -338,11 +309,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
           </TabsContent>
 
           <TabsContent value="history" className="mt-0">
-            <div className="text-center py-8 text-muted-foreground">
-              <pre className="text-2xl mb-2">{`  ~><((('>
- ><>  ><>`}</pre>
-              <p className="text-sm">Service history coming soon</p>
-            </div>
+            <EmptyState ascii={`  ~><((('>\n ><>  ><>`} message="Service history coming soon" />
           </TabsContent>
 
           <TabsContent value="tank" className="mt-0 space-y-5">
@@ -385,7 +352,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
             {/* Fish Inventory */}
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
-                <Fish className="h-4 w-4" />
+                <TankTypeIcon type="saltwater" className="h-4 w-4" />
                 Fish Inventory
               </label>
               <div className="flex flex-wrap gap-1">
@@ -411,7 +378,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                 Equipment
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {['Sump', 'Skimmer', 'Reactor', 'UV', 'ATO', 'Dosing'].map(equip => (
+                {EQUIPMENT_LIST.map(equip => (
                   <label key={equip} className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-muted/50">
                     <Checkbox />
                     <span className="text-sm">{equip}</span>

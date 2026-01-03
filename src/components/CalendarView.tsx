@@ -4,14 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  CalendarDays,
-  Clock,
-  AlertTriangle,
-  Droplets,
-  Fish,
-  Waves,
-} from "lucide-react";
+import { TankTypeIcon, TankTypeDot, TANK_TYPE_DOT_COLORS } from "@/components/ui/shared";
+import { CalendarDays, Clock, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import type { DaySchedule } from "@/types/schedule";
 import { tankTypeBadgeColors } from "@/types/schedule";
@@ -22,17 +16,6 @@ interface CalendarViewProps {
   selectedDate: Date;
   maxStopsPerDay: number;
 }
-
-const TankIcon = ({ type }: { type: "freshwater" | "saltwater" | "reef" }) => {
-  switch (type) {
-    case "freshwater":
-      return <Droplets className="h-3 w-3" />;
-    case "saltwater":
-      return <Fish className="h-3 w-3" />;
-    case "reef":
-      return <Waves className="h-3 w-3" />;
-  }
-};
 
 export function CalendarView({
   schedules,
@@ -71,16 +54,7 @@ export function CalendarView({
       <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-0.5 pb-0.5">
         {conflict && <AlertTriangle className="h-2 w-2 text-destructive" />}
         {Array.from(tankTypes).map((type) => (
-          <div
-            key={type}
-            className={`h-1.5 w-1.5 rounded-full ${
-              type === "freshwater"
-                ? "bg-blue-500"
-                : type === "saltwater"
-                ? "bg-teal-500"
-                : "bg-purple-500"
-            }`}
-          />
+          <TankTypeDot key={type} type={type} className="h-1.5 w-1.5" />
         ))}
       </div>
     );
@@ -149,7 +123,7 @@ export function CalendarView({
                               className="flex items-center gap-2 py-1 text-xs"
                             >
                               {stop.location.tankInfo?.type && (
-                                <TankIcon type={stop.location.tankInfo.type} />
+                                <TankTypeIcon type={stop.location.tankInfo.type} />
                               )}
                               <span className="truncate">{stop.location.name}</span>
                             </div>
@@ -209,7 +183,7 @@ export function CalendarView({
                         variant="outline"
                         className={tankTypeBadgeColors[stop.location.tankInfo.type]}
                       >
-                        <TankIcon type={stop.location.tankInfo.type} />
+                        <TankTypeIcon type={stop.location.tankInfo.type} />
                       </Badge>
                     )}
                     <span className="truncate flex-1">{stop.location.name}</span>

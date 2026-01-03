@@ -2,12 +2,14 @@ import { LoadScript } from "@react-google-maps/api";
 import { useCallback, useState } from "react";
 import { MapView } from "@/components/MapView";
 import { LocationInput } from "@/components/LocationInput";
+import { AiLocationInput } from "@/components/AiLocationInput";
 import { LocationModal } from "@/components/LocationModal";
 import { LocationList } from "@/components/LocationList";
 import { CalendarView } from "@/components/CalendarView";
 import { RouteSummary } from "@/components/RouteSummary";
 import { TrafficDashboard } from "@/components/TrafficDashboard";
 import { Settings } from "@/components/Settings";
+import { AiAssistant } from "@/components/AiAssistant";
 import { BottomNav, type NavTab } from "@/components/BottomNav";
 import { Onboarding } from "@/components/Onboarding";
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -71,6 +73,16 @@ function App() {
     };
     addLocation(newLocation);
     setMapCenter(place.position);
+    setSelectedLocation(newLocation);
+    setModalOpen(true);
+  }, [addLocation]);
+
+  const handleAiLocationParsed = useCallback((location: Partial<ServiceLocation>) => {
+    const newLocation = location as ServiceLocation;
+    addLocation(newLocation);
+    if (newLocation.lat && newLocation.lng) {
+      setMapCenter({ lat: newLocation.lat, lng: newLocation.lng });
+    }
     setSelectedLocation(newLocation);
     setModalOpen(true);
   }, [addLocation]);
@@ -155,8 +167,10 @@ function App() {
               ))}
             </div>
 
-            <div className="p-3 border-b">
-              <LocationInput onPlaceSelect={handlePlaceSelect} placeholder="Add new location..." />
+            <div className="p-3 border-b space-y-2">
+              <AiLocationInput onLocationParsed={handleAiLocationParsed} />
+              <div className="text-xs text-muted-foreground text-center">or search by address</div>
+              <LocationInput onPlaceSelect={handlePlaceSelect} placeholder="Search address..." />
             </div>
             <div className="flex-1 overflow-hidden min-h-0">
               <LocationList
@@ -182,8 +196,9 @@ function App() {
                     center={mapCenter}
                     selectedId={selectedLocation?.id}
                   />
-                  <div className="absolute top-4 left-4 right-4 z-10">
-                    <LocationInput onPlaceSelect={handlePlaceSelect} placeholder="Search locations..." />
+                  <div className="absolute top-4 left-4 right-4 z-10 space-y-2">
+                    <AiLocationInput onLocationParsed={handleAiLocationParsed} placeholder="Describe location + schedule..." />
+                    <LocationInput onPlaceSelect={handlePlaceSelect} placeholder="Or search address..." />
                   </div>
                   <div className="absolute bottom-20 left-4 bg-background/90 backdrop-blur rounded-lg p-2 text-xs text-muted-foreground">
                     {locations.length} locations
@@ -301,6 +316,9 @@ function App() {
           onMarkServiced={handleMarkServiced}
           onSkipUntil={handleSkipUntil}
         />
+
+        {/* AI Assistant */}
+        <AiAssistant locations={locations} selectedLocation={selectedLocation} />
       </div>
     </LoadScript>
   );

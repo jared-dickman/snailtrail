@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { getTrafficData } from "../lib/traffic";
+import { badRequest, serviceUnavailable } from "../lib/response";
 
 const traffic = new Hono();
+
+const COORD_REGEX = /^-?\d+\.?\d*,-?\d+\.?\d*$/;
 
 traffic.get("/", async (c) => {
   const origin = c.req.query("origin");
@@ -9,28 +12,17 @@ traffic.get("/", async (c) => {
   const waypoints = c.req.query("waypoints");
 
   if (!origin || !destination) {
-    return c.json(
-      { error: "Missing required params: origin and destination (lat,lng)" },
-      400
-    );
+    return badRequest(c, "Missing required params: origin and destination (lat,lng)");
   }
 
-  // Validate coordinate format
-  const coordRegex = /^-?\d+\.?\d*,-?\d+\.?\d*$/;
-  if (!coordRegex.test(origin) || !coordRegex.test(destination)) {
-    return c.json(
-      { error: "Invalid coordinate format. Use: lat,lng (e.g., 40.3573,-74.6672)" },
-      400
-    );
+  if (!COORD_REGEX.test(origin) || !COORD_REGEX.test(destination)) {
+    return badRequest(c, "Invalid coordinate format. Use: lat,lng (e.g., 40.3573,-74.6672)");
   }
 
   const data = await getTrafficData(origin, destination, waypoints);
 
   if (!data.google && !data.tomtom) {
-    return c.json(
-      { error: "No traffic data available. Check API keys in .env.local" },
-      503
-    );
+    return serviceUnavailable(c, "No traffic data available. Check API keys in .env.local");
   }
 
   return c.json(data);
