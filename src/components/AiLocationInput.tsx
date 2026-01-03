@@ -7,6 +7,7 @@ import type { ServiceLocation } from "@/types/location";
 interface ParsedLocation {
   name?: string;
   address?: string;
+  googlePlaceId?: string;
   contactName?: string;
   contactPhone?: string;
   priority?: "high" | "medium" | "low";
@@ -32,7 +33,27 @@ export function AiLocationInput({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const geocodeAddress = useCallback(async (address: string): Promise<{ lat: number; lng: number } | null> => {
+  const geocodeByPlaceId = useCallback(async (placeId: string): Promise<{ lat: number; lng: number; address: string } | null> => {
+    if (!window.google?.maps) return null;
+
+    const geocoder = new google.maps.Geocoder();
+    return new Promise((resolve) => {
+      geocoder.geocode({ placeId }, (results, status) => {
+        if (status === "OK" && results?.[0]) {
+          const loc = results[0].geometry.location;
+          resolve({
+            lat: loc.lat(),
+            lng: loc.lng(),
+            address: results[0].formatted_address || ""
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }, []);
+
+  const geocodeAddress = useCallback(async (address: string): Promise<{ lat: number; lng: number; address: string } | null> => {
     if (!window.google?.maps) return null;
 
     const geocoder = new google.maps.Geocoder();
@@ -40,7 +61,11 @@ export function AiLocationInput({
       geocoder.geocode({ address }, (results, status) => {
         if (status === "OK" && results?.[0]) {
           const loc = results[0].geometry.location;
-          resolve({ lat: loc.lat(), lng: loc.lng() });
+          resolve({
+            lat: loc.lat(),
+            lng: loc.lng(),
+            address: results[0].formatted_address || address
+          });
         } else {
           resolve(null);
         }
@@ -63,25 +88,40 @@ export function AiLocationInput({
 
       const parsed: ParsedLocation = await res.json();
 
-      if (!parsed.name && !parsed.address) {
+      if (!parsed.name && !parsed.address && !parsed.googlePlaceId) {
         onError?.("Couldn't parse location info. Try including a name and address.");
         return;
       }
 
-      // Geocode address if present
-      let coords = { lat: 0, lng: 0 };
+      // Geocode: prefer address, then name (Place IDs from AI can be hallucinated)
+      let geo: { lat: number; lng: number; address: string } | null = null;
+
       if (parsed.address) {
-        const geo = await geocodeAddress(parsed.address);
-        if (geo) coords = geo;
+        geo = await geocodeAddress(parsed.address);
+      }
+
+      if (!geo && parsed.name) {
+        // Search by full name - Google will find well-known places
+        geo = await geocodeAddress(parsed.name);
+      }
+
+      if (!geo && parsed.googlePlaceId) {
+        // Fallback to Place ID (may be hallucinated, use with caution)
+        geo = await geocodeByPlaceId(parsed.googlePlaceId);
+      }
+
+      if (!geo || (geo.lat === 0 && geo.lng === 0)) {
+        onError?.("Couldn't verify location. Please include a complete street address.");
+        return;
       }
 
       // Map to ServiceLocation
       const location: Partial<ServiceLocation> = {
         id: crypto.randomUUID(),
-        name: parsed.name || "New Location",
-        address: parsed.address || "",
-        lat: coords.lat,
-        lng: coords.lng,
+        name: parsed.name || geo.address.split(",")[0] || "New Location",
+        address: geo.address,
+        lat: geo.lat,
+        lng: geo.lng,
         status: "active",
         priority: parsed.priority,
         contactName: parsed.contactName,
@@ -110,7 +150,7 @@ export function AiLocationInput({
     } finally {
       setLoading(false);
     }
-  }, [input, loading, geocodeAddress, onLocationParsed, onError]);
+  }, [input, loading, geocodeByPlaceId, geocodeAddress, onLocationParsed, onError]);
 
   return (
     <div className="flex gap-2">

@@ -11,6 +11,7 @@ export interface LocationConstraint {
 export interface ParsedLocation {
   name?: string;
   address?: string;
+  googlePlaceId?: string;
   contactName?: string;
   contactPhone?: string;
   priority?: "high" | "medium" | "low";
@@ -43,10 +44,18 @@ Only include fields with extracted values. Return {} if nothing parseable.`;
 
 const FULL_LOCATION_PROMPT = `You parse aquarium service location info from natural language. Return ONLY valid JSON.
 
+CRITICAL - ADDRESS REQUIREMENTS:
+- NEVER guess or fabricate addresses. Only return addresses explicitly provided by the user.
+- If user provides an abbreviation (EWR, JFK, LAX), expand to FULL official name but set address to null.
+- If user provides a business name without street address, set address to null.
+- The address field MUST be a real, complete, geocodable street address or null.
+- For well-known places, provide googlePlaceId if you know it (e.g., "ChIJR0lA1VBTwokR8BGfSBOyT-w" for Newark Airport).
+
 Schema:
 {
-  "name": "business/client name" | null,
-  "address": "full street address" | null,
+  "name": "business/client name - EXPAND abbreviations to full names" | null,
+  "address": "ONLY real street addresses explicitly given, or null" | null,
+  "googlePlaceId": "Google Place ID if known for landmarks/businesses" | null,
   "contactName": "person's name" | null,
   "contactPhone": "phone number" | null,
   "priority": "high" | "medium" | "low" | null,
@@ -59,11 +68,12 @@ Schema:
 }
 
 Examples:
-- "Dr Smith's office at 123 Main St, 75 gallon reef, service every 2 weeks on Thursdays 9-12" → {"name":"Dr Smith's office","address":"123 Main St","frequency":"biweekly","preferredDay":"Thursday","timeWindow":{"open":"09:00","close":"12:00"},"tankType":"reef","tankGallons":75}
-- "Bob's Pets 456 Oak Ave, high priority, saltwater 200gal, call Bob at 555-1234" → {"name":"Bob's Pets","address":"456 Oak Ave","priority":"high","contactName":"Bob","contactPhone":"555-1234","tankType":"saltwater","tankGallons":200}
-- "weekly Monday mornings at Sunrise Dental" → {"name":"Sunrise Dental","frequency":"weekly","preferredDay":"Monday","timeWindow":{"open":"08:00","close":"12:00"}}
+- "ewr" → {"name":"Newark Liberty International Airport","address":null,"googlePlaceId":"ChIJR0lA1VBTwokR8BGfSBOyT-w"}
+- "Dr Smith at 123 Main St Newark NJ" → {"name":"Dr Smith","address":"123 Main St, Newark, NJ"}
+- "Bob's Pets, high priority, saltwater 200gal" → {"name":"Bob's Pets","address":null,"priority":"high","tankType":"saltwater","tankGallons":200}
+- "weekly at Sunrise Dental 456 Oak Ave" → {"name":"Sunrise Dental","address":"456 Oak Ave","frequency":"weekly"}
 
-Only include fields you can extract. Return {} if nothing parseable.`;
+NEVER invent addresses. If no real address given, address MUST be null.`;
 
 export async function parseLocationConstraint(
   text: string
@@ -118,6 +128,7 @@ export async function parseFullLocation(text: string): Promise<ParsedLocation> {
 
     if (parsed.name) result.name = parsed.name;
     if (parsed.address) result.address = parsed.address;
+    if (parsed.googlePlaceId) result.googlePlaceId = parsed.googlePlaceId;
     if (parsed.contactName) result.contactName = parsed.contactName;
     if (parsed.contactPhone) result.contactPhone = parsed.contactPhone;
     if (["high", "medium", "low"].includes(parsed.priority)) {
