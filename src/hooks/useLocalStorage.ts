@@ -47,7 +47,7 @@ export function useLocalStorageWithDefaults<T extends object>(
   key: string,
   defaults: T
 ): [T, (updates: Partial<T>) => void, () => void] {
-  const [state, setState, remove] = useLocalStorage<T>(key, () => {
+  const [state, setState] = useLocalStorage<T>(key, () => {
     if (typeof window === "undefined") return defaults;
     try {
       const stored = localStorage.getItem(key);

@@ -1,17 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Car,
-  Clock,
-  MapPin,
-  Navigation,
-  Fuel,
-  Home,
-  AlertTriangle,
-  Share2,
-  FileDown,
-} from "lucide-react";
+import { MetricCard, EmptyState } from "@/components/ui/shared";
+import { Car, Clock, MapPin, Navigation, Fuel, Home, AlertTriangle, Share2, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import type { DaySchedule } from "@/types/schedule";
 import type { HomeBase } from "@/types/settings";
@@ -86,9 +77,8 @@ Total: ${stopCount} stops, ~${Math.round(totalDriveTime)} min drive`;
   if (!schedule || stopCount === 0) {
     return (
       <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>No stops scheduled</p>
+        <CardContent className="py-8">
+          <EmptyState icon={MapPin} message="No stops scheduled" />
         </CardContent>
       </Card>
     );
@@ -108,37 +98,10 @@ Total: ${stopCount} stops, ~${Math.round(totalDriveTime)} min drive`;
       <CardContent className="space-y-4">
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2 p-2 rounded bg-muted/50">
-            <MapPin className="h-4 w-4 text-primary" />
-            <div>
-              <div className="text-lg font-bold">{stopCount}</div>
-              <div className="text-xs text-muted-foreground">Stops</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 p-2 rounded bg-muted/50">
-            <Car className="h-4 w-4 text-primary" />
-            <div>
-              <div className="text-lg font-bold">{Math.round(totalDriveTime)} min</div>
-              <div className="text-xs text-muted-foreground">Drive Time</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 p-2 rounded bg-muted/50">
-            <Clock className="h-4 w-4 text-primary" />
-            <div>
-              <div className="text-lg font-bold">{Math.round(totalServiceTime)} min</div>
-              <div className="text-xs text-muted-foreground">Service Time</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 p-2 rounded bg-muted/50">
-            <Clock className="h-4 w-4 text-green-600" />
-            <div>
-              <div className="text-lg font-bold">{estimatedEndTime}</div>
-              <div className="text-xs text-muted-foreground">Est. End</div>
-            </div>
-          </div>
+          <MetricCard icon={MapPin} value={stopCount} label="Stops" />
+          <MetricCard icon={Car} value={`${Math.round(totalDriveTime)} min`} label="Drive Time" />
+          <MetricCard icon={Clock} value={`${Math.round(totalServiceTime)} min`} label="Service Time" />
+          <MetricCard icon={Clock} value={estimatedEndTime} label="Est. End" iconClassName="text-green-600" />
         </div>
 
         {/* Distance & Fuel */}

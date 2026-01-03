@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocationInput } from "@/components/LocationInput";
+import { FormField } from "@/components/ui/shared";
 import { Settings as SettingsIcon, Home, Clock, MapPin, Coffee, Sun, Moon, Monitor } from "lucide-react";
 import type { AppSettings, HomeBase } from "@/types/settings";
 import type { PlaceResult } from "@/types/maps";
@@ -64,11 +65,7 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Theme Toggle */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2">
-            {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            Appearance
-          </label>
+        <FormField icon={theme === "dark" ? Moon : Sun} label="Appearance">
           <div className="flex gap-1">
             <Button
               variant={theme === "light" ? "default" : "outline"}
@@ -95,14 +92,10 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
               <Monitor className="h-4 w-4 mr-1" /> Auto
             </Button>
           </div>
-        </div>
+        </FormField>
 
         {/* Home Base */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <Home className="h-4 w-4 text-muted-foreground" />
-            Home Base (HQ)
-          </label>
+        <FormField icon={Home} label="Home Base (HQ)">
           {settings.homeBase ? (
             <div className="flex items-center gap-2">
               <div className="flex-1 p-2 bg-muted rounded text-sm truncate">
@@ -122,28 +115,20 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
               placeholder="Set your home base address..."
             />
           )}
-        </div>
+        </FormField>
 
         {/* Default Start Time */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            Default Start Time
-          </label>
+        <FormField icon={Clock} label="Default Start Time">
           <Input
             type="time"
             value={settings.defaultStartTime}
             onChange={(e) => onUpdate({ defaultStartTime: e.target.value })}
             className="w-32"
           />
-        </div>
+        </FormField>
 
         {/* Working Hours */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            Working Hours
-          </label>
+        <FormField icon={Clock} label="Working Hours">
           <div className="flex items-center gap-2">
             <Input
               type="time"
@@ -167,14 +152,10 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
               className="w-32"
             />
           </div>
-        </div>
+        </FormField>
 
         {/* Break Preferences */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <Coffee className="h-4 w-4 text-muted-foreground" />
-            Break Time
-          </label>
+        <FormField icon={Coffee} label="Break Time">
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -226,14 +207,10 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
               </div>
             </div>
           )}
-        </div>
+        </FormField>
 
         {/* Max Stops */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            Max Stops Per Day
-          </label>
+        <FormField icon={MapPin} label="Max Stops Per Day">
           <Input
             type="number"
             value={settings.maxStopsPerDay}
@@ -244,7 +221,7 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
             min={1}
             max={30}
           />
-        </div>
+        </FormField>
 
         {onClose && (
           <Button onClick={onClose} className="w-full mt-4">

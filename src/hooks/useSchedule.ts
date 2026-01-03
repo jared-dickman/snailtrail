@@ -135,7 +135,7 @@ export function useSchedule() {
   );
 
   const getDatesWithSchedules = useCallback(
-    (): Date[] => Object.keys(schedules).filter((k) => schedules[k].stops.length > 0).map(parseISO),
+    (): Date[] => Object.keys(schedules).filter((k) => schedules[k].stops.length > 0).map((k) => parseISO(k)),
     [schedules]
   );
 

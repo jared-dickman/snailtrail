@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { PriorityDot, TankTypeIcon, InfoRow, EmptyState } from '@/components/ui/shared';
+import { PriorityDot, TankTypeIcon, EmptyState } from '@/components/ui/shared';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { Camera, Plus, Sparkles, Droplets } from 'lucide-react';
 import type { ServiceLocation, TabValue } from '@/types/location';

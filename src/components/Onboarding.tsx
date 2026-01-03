@@ -34,6 +34,10 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     setLocations((prev) => [...prev, newLoc]);
   };
 
+  const handleAiLocation = (location: Partial<ServiceLocation>) => {
+    setLocations((prev) => [...prev, location as ServiceLocation]);
+  };
+
   const handleSetHomeBase = (place: PlaceResult) => {
     setHomeBase({
       lat: place.position.lat,
@@ -122,29 +126,53 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           <>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
+                <Wand2 className="h-5 w-5" />
                 Add Service Locations
               </CardTitle>
               <CardDescription>
-                Add your customer locations (you can add more later)
+                Describe your customers naturally — AI handles the rest
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <AiLocationInput
+                onLocationParsed={handleAiLocation}
+                placeholder="e.g. Bob's Dental, 123 Main St, 50gal reef, weekly Mondays"
+              />
+              <div className="text-xs text-muted-foreground text-center">or search by address</div>
               <LocationInput
                 onPlaceSelect={handleAddLocation}
-                placeholder="Search for a customer location..."
+                placeholder="Search address..."
               />
 
               {locations.length > 0 && (
                 <div className="space-y-2 max-h-48 overflow-auto">
                   {locations.map((loc, i) => (
                     <div key={loc.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center shrink-0">
                         {i + 1}
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">{loc.name}</div>
                         <div className="text-xs text-muted-foreground truncate">{loc.address}</div>
+                        {(loc.tankInfo || loc.serviceSchedule) && (
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            {loc.tankInfo?.type && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                {loc.tankInfo.gallons}gal {loc.tankInfo.type}
+                              </Badge>
+                            )}
+                            {loc.serviceSchedule?.frequency && (
+                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                {loc.serviceSchedule.frequency}
+                              </Badge>
+                            )}
+                            {loc.priority && (
+                              <Badge variant={loc.priority === 'high' ? 'destructive' : 'secondary'} className="text-[10px] px-1 py-0">
+                                {loc.priority}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <Button
                         variant="ghost"

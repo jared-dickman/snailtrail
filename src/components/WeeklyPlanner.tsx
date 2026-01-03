@@ -21,16 +21,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Calendar,
-  GripVertical,
-  Clock,
-  Car,
-  Droplets,
-  Fish,
-  Waves,
-  AlertCircle,
-} from "lucide-react";
+import { TankTypeIcon } from "@/components/ui/shared";
+import { Calendar, GripVertical, Clock, Car, AlertCircle } from "lucide-react";
 import { format, addDays, startOfWeek } from "date-fns";
 import type { DaySchedule, ScheduledStop } from "@/types/schedule";
 import { tankTypeBadgeColors } from "@/types/schedule";
@@ -42,17 +34,6 @@ interface WeeklyPlannerProps {
   onMoveStop: (fromDate: Date, toDate: Date, stopId: string) => void;
   maxStopsPerDay: number;
 }
-
-const TankIcon = ({ type }: { type: "freshwater" | "saltwater" | "reef" }) => {
-  switch (type) {
-    case "freshwater":
-      return <Droplets className="h-3 w-3" />;
-    case "saltwater":
-      return <Fish className="h-3 w-3" />;
-    case "reef":
-      return <Waves className="h-3 w-3" />;
-  }
-};
 
 interface SortableStopCardProps {
   stop: ScheduledStop;
@@ -99,7 +80,7 @@ function SortableStopCard({ stop, index }: SortableStopCardProps) {
 
       {tankType && (
         <Badge variant="outline" className={`${tankTypeBadgeColors[tankType]} shrink-0`}>
-          <TankIcon type={tankType} />
+          <TankTypeIcon type={tankType} />
         </Badge>
       )}
 
@@ -135,7 +116,7 @@ function StopCard({ stop, index }: { stop: ScheduledStop; index: number }) {
       </span>
       {tankType && (
         <Badge variant="outline" className={tankTypeBadgeColors[tankType]}>
-          <TankIcon type={tankType} />
+          <TankTypeIcon type={tankType} />
         </Badge>
       )}
       <span className="font-medium text-sm truncate">{stop.location.name}</span>

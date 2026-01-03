@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TankTypeIcon, TankTypeDot, TANK_TYPE_DOT_COLORS } from "@/components/ui/shared";
+import { TankTypeIcon, TankTypeDot } from "@/components/ui/shared";
 import { CalendarDays, Clock, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import type { DaySchedule } from "@/types/schedule";
@@ -47,7 +47,7 @@ export function CalendarView({
     const tankTypes = new Set(
       schedule.stops
         .map((s) => s.location.tankInfo?.type)
-        .filter(Boolean)
+        .filter((t): t is "freshwater" | "saltwater" | "reef" => !!t)
     );
 
     return (
@@ -202,15 +202,15 @@ export function CalendarView({
         {/* Legend */}
         <div className="border-t pt-3 flex gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <div className="h-2 w-2 rounded-full bg-blue-500" />
+            <TankTypeDot type="freshwater" />
             Freshwater
           </div>
           <div className="flex items-center gap-1">
-            <div className="h-2 w-2 rounded-full bg-teal-500" />
+            <TankTypeDot type="saltwater" />
             Saltwater
           </div>
           <div className="flex items-center gap-1">
-            <div className="h-2 w-2 rounded-full bg-purple-500" />
+            <TankTypeDot type="reef" />
             Reef
           </div>
         </div>

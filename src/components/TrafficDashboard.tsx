@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TrafficDot, TRAFFIC_COLORS, EmptyState, type TrafficLevel } from "@/components/ui/shared";
 import {
   Car,
   Clock,
@@ -24,7 +25,7 @@ interface TrafficStop {
   eta: string;
   etaMinutes: number;
   distance: string;
-  trafficLevel: "low" | "moderate" | "heavy" | "severe";
+  trafficLevel: TrafficLevel;
   status: "completed" | "current" | "upcoming";
   incidents?: string[];
 }
@@ -35,14 +36,7 @@ interface TrafficDashboardProps {
   onNavigate: (location: ServiceLocation) => void;
 }
 
-const TRAFFIC_COLORS = {
-  low: "bg-green-500",
-  moderate: "bg-yellow-500",
-  heavy: "bg-orange-500",
-  severe: "bg-red-500",
-};
-
-const TRAFFIC_LABELS = {
+const TRAFFIC_LABELS: Record<TrafficLevel, string> = {
   low: "Light Traffic",
   moderate: "Moderate",
   heavy: "Heavy",
@@ -77,7 +71,7 @@ export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDas
       cumulativeMinutes += travelTime;
 
       const eta = new Date(now.getTime() + cumulativeMinutes * 60000);
-      const trafficLevels: ("low" | "moderate" | "heavy" | "severe")[] = ["low", "moderate", "heavy", "severe"];
+      const trafficLevels: TrafficLevel[] = ["low", "moderate", "heavy", "severe"];
       const trafficLevel = trafficLevels[Math.floor(Math.random() * 3)]; // Mostly good traffic
 
       const incidents: string[] = [];
@@ -132,10 +126,7 @@ export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDas
     return (
       <Card className="h-full">
         <CardContent className="h-full flex items-center justify-center">
-          <div className="text-center text-muted-foreground">
-            <Car className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Add locations to see live traffic</p>
-          </div>
+          <EmptyState icon={Car} message="Add locations to see live traffic" />
         </CardContent>
       </Card>
     );
@@ -263,7 +254,7 @@ export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDas
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm truncate">{stop.location.name}</span>
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${TRAFFIC_COLORS[stop.trafficLevel]}`} />
+                      <TrafficDot level={stop.trafficLevel} />
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                       <span className="flex items-center gap-1">
