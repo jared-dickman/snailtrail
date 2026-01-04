@@ -115,3 +115,79 @@ export type TrafficLevel = keyof typeof TRAFFIC_COLORS;
 export function TrafficDot({ level, className }: { level: TrafficLevel; className?: string }) {
   return <span className={cn('w-2 h-2 rounded-full shrink-0', TRAFFIC_COLORS[level], className)} />;
 }
+
+// Info row - consolidated from LocationModal repeated pattern (Contact, Phone, Priority rows)
+interface InfoRowProps {
+  label: string;
+  value: React.ReactNode;
+  href?: string;
+  border?: boolean;
+}
+
+export function InfoRow({ label, value, href, border = true }: InfoRowProps) {
+  return (
+    <div className={cn('flex justify-between py-2', border && 'border-b')}>
+      <span className="text-muted-foreground">{label}</span>
+      {href ? (
+        <a href={href} className="text-primary">{value}</a>
+      ) : (
+        <span>{value}</span>
+      )}
+    </div>
+  );
+}
+
+// Labeled input - for edit forms
+interface LabeledInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+}
+
+export function LabeledInput({ label, value, onChange, type = 'text', placeholder }: LabeledInputProps) {
+  return (
+    <div>
+      <label className="text-sm text-muted-foreground">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+      />
+    </div>
+  );
+}
+
+// Checkbox grid - for days of week and equipment lists
+interface CheckboxGridProps<T extends string> {
+  items: readonly T[];
+  selected: T | T[] | undefined;
+  onChange: (item: T, checked: boolean) => void;
+  columns?: number;
+  multi?: boolean;
+}
+
+export function CheckboxGrid<T extends string>({ items, selected, onChange, columns = 2, multi = false }: CheckboxGridProps<T>) {
+  const isSelected = (item: T) => multi
+    ? Array.isArray(selected) && selected.includes(item)
+    : selected === item;
+
+  return (
+    <div className={cn('grid gap-2', columns === 2 && 'grid-cols-2', columns === 3 && 'grid-cols-3')}>
+      {items.map(item => (
+        <label key={item} className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-muted/50">
+          <input
+            type="checkbox"
+            checked={isSelected(item)}
+            onChange={(e) => onChange(item, e.target.checked)}
+            className="h-4 w-4 rounded border-primary text-primary focus:ring-primary"
+          />
+          <span className="text-sm">{item}</span>
+        </label>
+      ))}
+    </div>
+  );
+}

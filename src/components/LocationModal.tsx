@@ -13,7 +13,7 @@ import { PriorityDot, TankTypeIcon, EmptyState } from '@/components/ui/shared';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { Camera, Plus, Sparkles, Droplets } from 'lucide-react';
 import type { ServiceLocation, TabValue } from '@/types/location';
-import { DAYS_OF_WEEK, FREQUENCIES, PRIORITIES, TANK_TYPES, COMMON_FISH, EQUIPMENT_LIST } from '@/lib/constants';
+import { DAYS_OF_WEEK, FREQUENCIES, TANK_TYPES, COMMON_FISH, EQUIPMENT_LIST } from '@/lib/constants';
 import { formatDate, getDaysUntil } from '@/lib/utils';
 
 interface LocationModalProps {
@@ -272,27 +272,6 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
               </div>
             </div>
 
-            {/* Priority */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Priority Level</label>
-              <div className="flex gap-2">
-                {PRIORITIES.map(p => (
-                  <button
-                    key={p.value}
-                    onClick={() => setFormData({ ...formData, priority: p.value as 'high' | 'medium' | 'low' })}
-                    className={`flex-1 p-3 rounded-lg border-2 transition-all ${
-                      formData.priority === p.value
-                        ? 'border-primary bg-primary/10'
-                        : 'border-transparent bg-muted/50 hover:bg-muted'
-                    }`}
-                  >
-                    <span className={`inline-block w-3 h-3 rounded-full ${p.color} mb-1`} />
-                    <div className="text-sm font-medium">{p.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Special Instructions Toggle */}
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <div>
@@ -469,7 +448,7 @@ export function LocationModal({ location, open, onOpenChange, onUpdate, onDelete
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto flex flex-col">
         <DialogHeader>
           <DialogTitle>{location.name}</DialogTitle>
         </DialogHeader>
