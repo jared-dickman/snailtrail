@@ -1,7 +1,8 @@
 export interface ServiceSchedule {
   frequency: 'weekly' | 'biweekly' | 'monthly';
-  preferredDay?: string;
+  preferredDays?: string[];
   timeWindow?: { open: string; close: string };
+  appointmentRequired?: boolean;
 }
 
 export interface TankInfo {
@@ -24,6 +25,7 @@ export interface ServiceLocation {
   contactPhone?: string;
   priority?: 'high' | 'medium' | 'low';
   status: 'active' | 'paused' | 'inactive';
+  estimatedDuration?: number; // minutes expected for service
 }
 
 export type TabValue = 'details' | 'schedule' | 'history' | 'tank';

@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { PriorityDot, TankTypeIcon, EmptyState } from '@/components/ui/shared';
 import { useIsMobile } from '@/hooks/useMediaQuery';
-import { Camera, Plus, Sparkles, Droplets } from 'lucide-react';
+import { Camera, Plus, Sparkles, Droplets, Pause, Play } from 'lucide-react';
 import type { ServiceLocation, TabValue } from '@/types/location';
 import { DAYS_OF_WEEK, FREQUENCIES, TANK_TYPES, COMMON_FISH, EQUIPMENT_LIST } from '@/lib/constants';
 import { formatDate, getDaysUntil } from '@/lib/utils';
@@ -68,11 +68,21 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
     <div className="flex flex-col h-full">
       {/* Header Info */}
       <div className="px-1 pb-4 border-b">
-        <div className="flex items-center gap-2 mb-2">
-          <PriorityDot priority={location.priority} />
-          <StatusBadge status={location.status} />
-          {location.tankInfo && (
-            <Badge variant="outline">{location.tankInfo.gallons}gal {location.tankInfo.type}</Badge>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <PriorityDot priority={location.priority} />
+            <StatusBadge status={location.status} />
+            {location.tankInfo && (
+              <Badge variant="outline">{location.tankInfo.gallons}gal {location.tankInfo.type}</Badge>
+            )}
+          </div>
+          {editing ? (
+            <div className="flex gap-1">
+              <Button size="sm" onClick={handleSave} className="h-8">Save</Button>
+              <Button size="sm" variant="outline" onClick={() => setEditing(false)} className="h-8">Cancel</Button>
+            </div>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => setEditing(true)} className="h-8">Edit</Button>
           )}
         </div>
         <p className="text-sm text-muted-foreground">{location.address}</p>
@@ -143,7 +153,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
           <TabsTrigger value="tank">Tank</TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1 px-1 mt-4 pb-20">
+        <div className="flex-1 px-1 mt-4 pb-24 min-h-0">
           <TabsContent value="details" className="mt-0 space-y-4">
             {editing ? (
               <>
@@ -162,10 +172,6 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                 <div>
                   <label className="text-sm text-muted-foreground">Contact Phone</label>
                   <Input value={formData.contactPhone || ''} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleSave} className="flex-1 h-11">Save</Button>
-                  <Button variant="outline" onClick={() => setEditing(false)} className="flex-1 h-11">Cancel</Button>
                 </div>
               </>
             ) : (
@@ -188,7 +194,6 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                     <StatusBadge status={location.status} />
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => setEditing(true)} className="w-full h-11">Edit Details</Button>
               </>
             )}
           </TabsContent>
@@ -219,22 +224,27 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
             <div className="space-y-2">
               <label className="text-sm font-medium">Preferred Days</label>
               <div className="grid grid-cols-2 gap-2">
-                {DAYS_OF_WEEK.map(day => (
-                  <label key={day} className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-muted/50">
-                    <Checkbox
-                      checked={formData.serviceSchedule?.preferredDay === day}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
+                {DAYS_OF_WEEK.map(day => {
+                  const currentDays = formData.serviceSchedule?.preferredDays || [];
+                  const isChecked = currentDays.includes(day);
+                  return (
+                    <label key={day} className="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-muted/50">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const newDays = checked
+                            ? [...currentDays, day]
+                            : currentDays.filter(d => d !== day);
                           setFormData({
                             ...formData,
-                            serviceSchedule: { frequency: 'weekly', ...formData.serviceSchedule, preferredDay: day }
+                            serviceSchedule: { frequency: 'weekly', ...formData.serviceSchedule, preferredDays: newDays }
                           });
-                        }
-                      }}
-                    />
-                    <span className="text-sm">{day}</span>
-                  </label>
-                ))}
+                        }}
+                      />
+                      <span className="text-sm">{day}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
@@ -272,13 +282,36 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
               </div>
             </div>
 
-            {/* Special Instructions Toggle */}
+            {/* Estimated Duration */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Estimated Job Time</label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={formData.estimatedDuration || ''}
+                  onChange={(e) => setFormData({ ...formData, estimatedDuration: parseInt(e.target.value) || undefined })}
+                  className="flex-1 h-11"
+                  placeholder="30"
+                  min={5}
+                  step={5}
+                />
+                <span className="text-sm text-muted-foreground">minutes</span>
+              </div>
+            </div>
+
+            {/* Appointment Required Toggle */}
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <div>
-                <div className="text-sm font-medium">Special Instructions</div>
-                <div className="text-xs text-muted-foreground">Enable custom notes for this location</div>
+                <div className="text-sm font-medium">Appointment Required</div>
+                <div className="text-xs text-muted-foreground">Must schedule before arriving</div>
               </div>
-              <Switch />
+              <Switch
+                checked={formData.serviceSchedule?.appointmentRequired || false}
+                onCheckedChange={(checked) => setFormData({
+                  ...formData,
+                  serviceSchedule: { frequency: 'weekly', ...formData.serviceSchedule, appointmentRequired: checked }
+                })}
+              />
             </div>
 
             <Button onClick={handleSave} className="w-full h-11">
@@ -400,11 +433,30 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
               Save Tank Info
             </Button>
           </TabsContent>
-        </ScrollArea>
+        </div>
       </Tabs>
 
-      {/* Delete */}
-      <div className="pt-4 border-t mt-4">
+      {/* Actions */}
+      <div className="pt-4 border-t mt-4 space-y-2">
+        {location.status === 'active' ? (
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => { onUpdate({ ...location, status: 'paused' }); onClose(); }}
+          >
+            <Pause className="h-4 w-4 mr-2" />
+            Pause Service
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => { onUpdate({ ...location, status: 'active' }); onClose(); }}
+          >
+            <Play className="h-4 w-4 mr-2" />
+            Reactivate
+          </Button>
+        )}
         <Button
           variant={confirmDelete ? 'destructive' : 'ghost'}
           className="w-full h-11"
@@ -427,11 +479,11 @@ export function LocationModal({ location, open, onOpenChange, onUpdate, onDelete
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[95vh] max-h-[95vh] flex flex-col">
+        <DrawerContent className="h-[95vh] max-h-[95vh] flex flex-col overflow-hidden">
           <DrawerHeader className="text-left shrink-0">
             <DrawerTitle>{location.name}</DrawerTitle>
           </DrawerHeader>
-          <ScrollArea className="flex-1 px-4 pb-4">
+          <div className="flex-1 overflow-y-auto px-4 pb-safe">
             <ModalContent
               location={location}
               onUpdate={onUpdate}
@@ -440,7 +492,7 @@ export function LocationModal({ location, open, onOpenChange, onUpdate, onDelete
               onSkipUntil={onSkipUntil}
               onClose={handleClose}
             />
-          </ScrollArea>
+          </div>
         </DrawerContent>
       </Drawer>
     );

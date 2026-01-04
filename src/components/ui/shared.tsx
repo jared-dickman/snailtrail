@@ -43,6 +43,23 @@ export function ServiceDueBadge({ nextService }: { nextService?: Date }) {
   return null;
 }
 
+// Missing info badge - subtle indicator for incomplete location data
+export function MissingInfoBadge({ location }: { location: { contactName?: string; contactPhone?: string; serviceSchedule?: unknown } }) {
+  const hasContact = location.contactName || location.contactPhone;
+  const hasSchedule = location.serviceSchedule;
+  if (hasContact && hasSchedule) return null;
+
+  const missing = [];
+  if (!hasContact) missing.push('contact');
+  if (!hasSchedule) missing.push('schedule');
+
+  return (
+    <span className="text-[10px] text-muted-foreground/60 bg-muted/50 px-1.5 py-0.5 rounded">
+      needs {missing.join(' & ')}
+    </span>
+  );
+}
+
 // Metric card - consolidated from RouteSummary 4x repeated pattern
 interface MetricCardProps {
   icon: LucideIcon;

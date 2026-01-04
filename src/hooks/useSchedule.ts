@@ -15,7 +15,9 @@ function generateInitialSchedules(): Record<string, DaySchedule> {
 
   const byDay: Record<number, ServiceLocation[]> = {};
   initialLocations.forEach(loc => {
-    const dayIdx = DAY_INDEX_MAP[(loc.serviceSchedule?.preferredDay || 'Monday') as DayOfWeek] ?? 0;
+    // Use first preferred day or default to Monday
+    const firstDay = loc.serviceSchedule?.preferredDays?.[0] || 'Monday';
+    const dayIdx = DAY_INDEX_MAP[firstDay as DayOfWeek] ?? 0;
     if (!byDay[dayIdx]) byDay[dayIdx] = [];
     byDay[dayIdx].push(loc);
   });

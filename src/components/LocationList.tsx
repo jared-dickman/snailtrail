@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { PriorityDot, ServiceDueBadge, EmptyState } from '@/components/ui/shared';
+import { PriorityDot, ServiceDueBadge, MissingInfoBadge, EmptyState } from '@/components/ui/shared';
 import { getDaysUntil } from '@/lib/utils';
 import type { ServiceLocation } from '@/types/location';
 
@@ -141,9 +141,10 @@ export function LocationList({ locations, onSelect, onCall, onNavigate }: Locati
                 <div className="flex items-start gap-3">
                   <PriorityDot priority={location.priority} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium truncate">{location.name}</span>
                       <ServiceDueBadge nextService={location.nextService} />
+                      <MissingInfoBadge location={location} />
                     </div>
                     <p className="text-sm text-muted-foreground truncate">{location.address}</p>
                     {location.tankInfo && (

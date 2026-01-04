@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocationInput } from "@/components/LocationInput";
 import { FormField } from "@/components/ui/shared";
-import { Settings as SettingsIcon, Home, Clock, MapPin, Coffee, Sun, Moon, Monitor } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Settings as SettingsIcon, Home, Clock, MapPin, Coffee, Sun, Moon, Monitor, Navigation, RotateCcw } from "lucide-react";
 import type { AppSettings, HomeBase } from "@/types/settings";
 import type { PlaceResult } from "@/types/maps";
 
@@ -51,6 +52,18 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
         address: place.name,
       };
       onUpdate({ homeBase });
+    },
+    [onUpdate]
+  );
+
+  const handleStartLocationSelect = useCallback(
+    (place: PlaceResult) => {
+      const startLocation: HomeBase = {
+        lat: place.position.lat,
+        lng: place.position.lng,
+        address: place.name,
+      };
+      onUpdate({ startLocation });
     },
     [onUpdate]
   );
@@ -115,6 +128,45 @@ export function Settings({ settings, onUpdate, onClose }: SettingsProps) {
               placeholder="Set your home base address..."
             />
           )}
+        </FormField>
+
+        {/* Start Location */}
+        <FormField icon={Navigation} label="Start Location">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={!settings.startLocation}
+                onChange={(e) => onUpdate({ startLocation: e.target.checked ? null : settings.homeBase })}
+                className="h-4 w-4"
+              />
+              <span className="text-sm text-muted-foreground">Same as home base</span>
+            </div>
+            {settings.startLocation && (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 p-2 bg-muted rounded text-sm truncate">
+                  {settings.startLocation.address}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => onUpdate({ startLocation: null })}>
+                  Clear
+                </Button>
+              </div>
+            )}
+            {settings.startLocation === null ? null : !settings.startLocation && (
+              <LocationInput onPlaceSelect={handleStartLocationSelect} placeholder="Different start location..." />
+            )}
+          </div>
+        </FormField>
+
+        {/* Return Home */}
+        <FormField icon={RotateCcw} label="End of Day">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Return to home base</span>
+            <Switch
+              checked={settings.returnHome}
+              onCheckedChange={(checked) => onUpdate({ returnHome: checked })}
+            />
+          </div>
         </FormField>
 
         {/* Default Start Time */}

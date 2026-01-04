@@ -1,7 +1,7 @@
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useCallback, useState } from "react";
 import type { ServiceLocation } from "@/types/location";
-import { PRIORITY_HEX_COLORS } from "@/lib/constants";
+import { getDaysUntil } from "@/lib/utils";
 
 interface MapViewProps {
   locations: ServiceLocation[];
@@ -18,8 +18,27 @@ const containerStyle = {
 
 const defaultCenter = { lat: 40.22, lng: -74.42 }; // Central NJ
 
+// Color by urgency - how soon does this location need service?
+const URGENCY_COLORS = {
+  overdue: '#ef4444',    // Red - overdue
+  urgent: '#f97316',     // Orange - today or tomorrow
+  soon: '#eab308',       // Yellow - 2-4 days
+  ok: '#22c55e',         // Green - 5-7 days
+  far: '#3b82f6',        // Blue - 8+ days or no date
+} as const;
+
+function getUrgencyColor(nextService?: Date): string {
+  const days = getDaysUntil(nextService);
+  if (days === null) return URGENCY_COLORS.far;
+  if (days < 0) return URGENCY_COLORS.overdue;
+  if (days <= 1) return URGENCY_COLORS.urgent;
+  if (days <= 4) return URGENCY_COLORS.soon;
+  if (days <= 7) return URGENCY_COLORS.ok;
+  return URGENCY_COLORS.far;
+}
+
 function getMarkerIcon(location: ServiceLocation, isSelected: boolean): google.maps.Symbol | undefined {
-  const color = PRIORITY_HEX_COLORS[location.priority || 'default'];
+  const color = getUrgencyColor(location.nextService);
 
   return {
     path: google.maps.SymbolPath.CIRCLE,

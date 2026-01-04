@@ -16,11 +16,13 @@ export interface ParsedLocation {
   contactPhone?: string;
   priority?: "high" | "medium" | "low";
   frequency?: "weekly" | "biweekly" | "monthly";
-  preferredDay?: string;
+  preferredDays?: string[];
   timeWindow?: { open: string; close: string };
   tankType?: "freshwater" | "saltwater" | "reef";
   tankGallons?: number;
   notes?: string;
+  appointmentRequired?: boolean;
+  estimatedDuration?: number;
 }
 
 const client = new Anthropic();
@@ -60,10 +62,12 @@ Schema:
   "contactPhone": "phone number" | null,
   "priority": "high" | "medium" | "low" | null,
   "frequency": "weekly" | "biweekly" | "monthly" | null,
-  "preferredDay": "Monday" | "Tuesday" | etc | null,
+  "preferredDays": ["Monday", "Tuesday", etc] | null (array of days),
   "timeWindow": { "open": "HH:MM", "close": "HH:MM" } | null,
   "tankType": "freshwater" | "saltwater" | "reef" | null,
   "tankGallons": number | null,
+  "appointmentRequired": boolean | null,
+  "estimatedDuration": number (minutes) | null,
   "notes": "any other details" | null
 }
 
@@ -137,7 +141,12 @@ export async function parseFullLocation(text: string): Promise<ParsedLocation> {
     if (["weekly", "biweekly", "monthly"].includes(parsed.frequency)) {
       result.frequency = parsed.frequency;
     }
-    if (parsed.preferredDay) result.preferredDay = parsed.preferredDay;
+    if (Array.isArray(parsed.preferredDays)) {
+      result.preferredDays = parsed.preferredDays;
+    } else if (parsed.preferredDay) {
+      // Backwards compat: single day → array
+      result.preferredDays = [parsed.preferredDay];
+    }
     if (parsed.timeWindow?.open && parsed.timeWindow?.close) {
       result.timeWindow = parsed.timeWindow;
     }
@@ -148,6 +157,12 @@ export async function parseFullLocation(text: string): Promise<ParsedLocation> {
       result.tankGallons = parsed.tankGallons;
     }
     if (parsed.notes) result.notes = parsed.notes;
+    if (typeof parsed.appointmentRequired === "boolean") {
+      result.appointmentRequired = parsed.appointmentRequired;
+    }
+    if (typeof parsed.estimatedDuration === "number" && parsed.estimatedDuration > 0) {
+      result.estimatedDuration = parsed.estimatedDuration;
+    }
 
     return result;
   } catch {

@@ -33,6 +33,7 @@ interface TrafficStop {
 interface TrafficDashboardProps {
   locations: ServiceLocation[];
   homeBase?: { lat: number; lng: number; address: string } | null;
+  returnHome?: boolean;
   onNavigate: (location: ServiceLocation) => void;
 }
 
@@ -43,7 +44,7 @@ const TRAFFIC_LABELS: Record<TrafficLevel, string> = {
   severe: "Severe Delays",
 };
 
-export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDashboardProps) {
+export function TrafficDashboard({ locations, homeBase, returnHome = true, onNavigate }: TrafficDashboardProps) {
   const [stops, setStops] = useState<TrafficStop[]>([]);
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
@@ -346,7 +347,7 @@ export function TrafficDashboard({ locations, homeBase, onNavigate }: TrafficDas
         </ScrollArea>
 
         {/* Summary Footer */}
-        {homeBase && (
+        {homeBase && returnHome && (
           <div className="pt-3 border-t text-center text-sm text-muted-foreground">
             <div className="flex items-center justify-center gap-1">
               <Navigation className="h-4 w-4" />

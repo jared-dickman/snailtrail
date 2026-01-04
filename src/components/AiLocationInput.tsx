@@ -12,11 +12,13 @@ interface ParsedLocation {
   contactPhone?: string;
   priority?: "high" | "medium" | "low";
   frequency?: "weekly" | "biweekly" | "monthly";
-  preferredDay?: string;
+  preferredDays?: string[];
   timeWindow?: { open: string; close: string };
   tankType?: "freshwater" | "saltwater" | "reef";
   tankGallons?: number;
   notes?: string;
+  appointmentRequired?: boolean;
+  estimatedDuration?: number;
 }
 
 interface AiLocationInputProps {
@@ -129,10 +131,12 @@ export function AiLocationInput({
         serviceSchedule: parsed.frequency
           ? {
               frequency: parsed.frequency,
-              preferredDay: parsed.preferredDay,
+              preferredDays: parsed.preferredDays,
               timeWindow: parsed.timeWindow,
+              appointmentRequired: parsed.appointmentRequired,
             }
           : undefined,
+        estimatedDuration: parsed.estimatedDuration,
         tankInfo:
           parsed.tankType || parsed.tankGallons
             ? {

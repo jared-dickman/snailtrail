@@ -17,6 +17,8 @@ export interface BreakPreferences {
 
 export interface AppSettings {
   homeBase: HomeBase | null;
+  startLocation: HomeBase | null; // null = use homeBase
+  returnHome: boolean;
   defaultStartTime: string;
   workingHours: WorkingHours;
   breakPreferences: BreakPreferences;
@@ -25,6 +27,8 @@ export interface AppSettings {
 
 export const defaultSettings: AppSettings = {
   homeBase: null,
+  startLocation: null, // defaults to homeBase
+  returnHome: true,
   defaultStartTime: "08:00",
   workingHours: { start: "08:00", end: "18:00" },
   breakPreferences: { enabled: false, startTime: "12:00", duration: 30 },
