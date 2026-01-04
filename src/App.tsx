@@ -1,4 +1,5 @@
 import { LoadScript } from "@react-google-maps/api";
+import { Toaster } from "sonner";
 import { useCallback, useState } from "react";
 import { MapView } from "@/components/MapView";
 import { LocationInput } from "@/components/LocationInput";
@@ -28,7 +29,6 @@ type DesktopTab = 'map' | 'traffic' | 'route' | 'settings';
 function App() {
   const isMobile = useIsMobile();
   const { settings, updateSettings } = useSettings();
-  const { schedules, getScheduleForDate } = useSchedule();
   const {
     locations,
     addLocation,
@@ -39,6 +39,7 @@ function App() {
     hasOnboarded,
     completeOnboarding,
   } = useLocations();
+  const { schedules, getScheduleForDate } = useSchedule(locations);
 
   const [selectedLocation, setSelectedLocation] = useState<ServiceLocation | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -319,6 +320,9 @@ function App() {
 
         {/* AI Assistant */}
         <AiAssistant locations={locations} selectedLocation={selectedLocation} />
+
+        {/* Toast notifications */}
+        <Toaster richColors position="top-center" />
       </div>
     </LoadScript>
   );

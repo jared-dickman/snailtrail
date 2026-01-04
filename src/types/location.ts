@@ -26,6 +26,8 @@ export interface ServiceLocation {
   priority?: 'high' | 'medium' | 'low';
   status: 'active' | 'paused' | 'inactive';
   estimatedDuration?: number; // minutes expected for service
+  waterGallonsNeeded?: number; // default gallons of water per service
+  clientNotes?: string; // persistent notes about this client
 }
 
 export type TabValue = 'details' | 'schedule' | 'history' | 'tank';

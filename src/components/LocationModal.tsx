@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -53,6 +54,7 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
   const handleSave = () => {
     onUpdate(formData);
     setEditing(false);
+    toast.success('Changes saved');
   };
 
   const handleDelete = () => {
@@ -173,6 +175,15 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                   <label className="text-sm text-muted-foreground">Contact Phone</label>
                   <Input value={formData.contactPhone || ''} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} />
                 </div>
+                <div>
+                  <label className="text-sm text-muted-foreground">Client Notes</label>
+                  <textarea
+                    value={formData.clientNotes || ''}
+                    onChange={(e) => setFormData({ ...formData, clientNotes: e.target.value })}
+                    className="w-full p-3 rounded-lg border bg-background text-sm min-h-[80px] resize-none"
+                    placeholder="Persistent notes about this client..."
+                  />
+                </div>
               </>
             ) : (
               <>
@@ -189,10 +200,16 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                     <span className="text-muted-foreground">Priority</span>
                     <span className="capitalize">{location.priority || 'N/A'}</span>
                   </div>
-                  <div className="flex justify-between py-2">
+                  <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Status</span>
                     <StatusBadge status={location.status} />
                   </div>
+                  {location.clientNotes && (
+                    <div className="pt-2">
+                      <span className="text-muted-foreground text-sm">Notes</span>
+                      <p className="text-sm mt-1 p-2 bg-muted/50 rounded">{location.clientNotes}</p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -296,6 +313,23 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                   step={5}
                 />
                 <span className="text-sm text-muted-foreground">minutes</span>
+              </div>
+            </div>
+
+            {/* Water Needed Per Service */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Water Needed (gallons)</label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={formData.waterGallonsNeeded || ''}
+                  onChange={(e) => setFormData({ ...formData, waterGallonsNeeded: parseInt(e.target.value) || undefined })}
+                  className="flex-1 h-11"
+                  placeholder="10"
+                  min={1}
+                  step={1}
+                />
+                <Droplets className="h-5 w-5 text-blue-500" />
               </div>
             </div>
 
