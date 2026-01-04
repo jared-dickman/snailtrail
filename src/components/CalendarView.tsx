@@ -50,12 +50,24 @@ export function CalendarView({
         .filter((t): t is "freshwater" | "saltwater" | "reef" => !!t)
     );
 
+    // Show stop count badge + tank type dots
+    const hasTankTypes = tankTypes.size > 0;
+    const stopCount = schedule.stops.length;
+
     return (
-      <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-0.5 pb-0.5">
+      <div className="absolute -bottom-1 left-0 right-0 flex flex-col items-center gap-0">
         {conflict && <AlertTriangle className="h-2 w-2 text-destructive" />}
-        {Array.from(tankTypes).map((type) => (
-          <TankTypeDot key={type} type={type} className="h-1.5 w-1.5" />
-        ))}
+        <div className="flex items-center gap-0.5">
+          {hasTankTypes ? (
+            Array.from(tankTypes).map((type) => (
+              <TankTypeDot key={type} type={type} className="h-2 w-2" />
+            ))
+          ) : (
+            <span className="text-[10px] font-medium text-primary bg-primary/20 rounded-full px-1 min-w-[16px] text-center">
+              {stopCount}
+            </span>
+          )}
+        </div>
       </div>
     );
   };
@@ -93,14 +105,20 @@ export function CalendarView({
                   <PopoverTrigger asChild>
                     <button
                       {...props}
-                      className={`relative w-full h-full p-2 text-sm rounded-md hover:bg-accent ${
+                      className={`relative w-full h-full p-1 text-sm rounded-md hover:bg-accent flex flex-col items-center justify-center ${
                         modifiers.selected ? "bg-primary text-primary-foreground" : ""
                       } ${modifiers.today ? "border border-primary" : ""} ${
                         conflict ? "ring-1 ring-destructive" : ""
                       }`}
                     >
-                      {format(day.date, "d")}
-                      {getDayContent(day.date)}
+                      <span>{format(day.date, "d")}</span>
+                      {stopCount > 0 && (
+                        <span className={`text-[9px] font-semibold leading-none ${
+                          modifiers.selected ? "text-primary-foreground/80" : "text-primary"
+                        }`}>
+                          •{stopCount}
+                        </span>
+                      )}
                     </button>
                   </PopoverTrigger>
                   {stopCount > 0 && (

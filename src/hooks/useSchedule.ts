@@ -13,9 +13,9 @@ function generateSchedulesFromLocations(locations: ServiceLocation[]): Record<st
   const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Sunday start
   const schedules: Record<string, DaySchedule> = {};
 
-  // Only schedule active locations with service schedules
+  // Schedule all active locations (with or without service schedules)
   const schedulableLocations = locations.filter(
-    loc => loc.status === 'active' && loc.serviceSchedule
+    loc => loc.status === 'active'
   );
 
   const byDay: Record<number, ServiceLocation[]> = {};
@@ -118,7 +118,6 @@ export function useSchedule(locations?: ServiceLocation[]) {
 
       const missingLocations = locations.filter(
         loc => loc.status === 'active' &&
-               loc.serviceSchedule &&
                !scheduledLocationIds.has(loc.id)
       );
 
