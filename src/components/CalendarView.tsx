@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TankTypeIcon, TankTypeDot } from "@/components/ui/shared";
 import { CalendarDays, Clock, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import type { DaySchedule } from "@/types/schedule";
 import { tankTypeBadgeColors } from "@/types/schedule";
 
@@ -27,7 +27,7 @@ export function CalendarView({
   const scheduledDates = useMemo(() => {
     return Object.entries(schedules)
       .filter(([_, schedule]) => schedule.stops.length > 0)
-      .map(([dateStr]) => new Date(dateStr));
+      .map(([dateStr]) => parseISO(dateStr)); // parseISO handles timezone correctly
   }, [schedules]);
 
   const getScheduleForDate = (date: Date): DaySchedule | undefined => {
@@ -75,6 +75,7 @@ export function CalendarView({
           mode="single"
           selected={selectedDate}
           onSelect={(date) => date && onDateSelect(date)}
+          weekStartsOn={0}
           modifiers={{
             scheduled: scheduledDates,
           }}

@@ -1,11 +1,9 @@
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useIsMobile } from '@/hooks/useMediaQuery';
+import { ResponsiveModal } from '@/components/ui/shared';
 import { Camera, CheckCircle2, AlertCircle, Droplets } from 'lucide-react';
 import type { ScheduledStop, ServiceCompletion } from '@/types/schedule';
 
@@ -163,35 +161,19 @@ function CompletionForm({ stop, onComplete, onClose }: {
 }
 
 export function ServiceCompletionModal({ stop, open, onOpenChange, onComplete }: ServiceCompletionModalProps) {
-  const isMobile = useIsMobile();
-
   if (!stop) return null;
 
-  const handleClose = () => onOpenChange(false);
-
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <DrawerTitle>Complete Service: {stop.location.name}</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4 overflow-y-auto">
-            <CompletionForm stop={stop} onComplete={onComplete} onClose={handleClose} />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Complete Service: {stop.location.name}</DialogTitle>
-        </DialogHeader>
-        <CompletionForm stop={stop} onComplete={onComplete} onClose={handleClose} />
-      </DialogContent>
-    </Dialog>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Complete Service: ${stop.location.name}`}
+    >
+      <CompletionForm
+        stop={stop}
+        onComplete={onComplete}
+        onClose={() => onOpenChange(false)}
+      />
+    </ResponsiveModal>
   );
 }

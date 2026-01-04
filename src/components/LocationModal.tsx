@@ -6,11 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { PriorityDot, TankTypeIcon, EmptyState } from '@/components/ui/shared';
+import { PriorityDot, TankTypeIcon, EmptyState, InfoRow } from '@/components/ui/shared';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { Camera, Plus, Sparkles, Droplets, Pause, Play } from 'lucide-react';
 import type { ServiceLocation, TabValue } from '@/types/location';
@@ -186,32 +185,18 @@ function ModalContent({ location, onUpdate, onDelete, onMarkServiced, onSkipUnti
                 </div>
               </>
             ) : (
-              <>
-                <div className="space-y-2">
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Contact</span>
-                    <span>{location.contactName || 'N/A'}</span>
+              <div className="space-y-2">
+                <InfoRow label="Contact" value={location.contactName || 'N/A'} />
+                <InfoRow label="Phone" value={location.contactPhone || 'N/A'} href={location.contactPhone ? `tel:${location.contactPhone}` : undefined} />
+                <InfoRow label="Priority" value={<span className="capitalize">{location.priority || 'N/A'}</span>} />
+                <InfoRow label="Status" value={<StatusBadge status={location.status} />} border={false} />
+                {location.clientNotes && (
+                  <div className="pt-2">
+                    <span className="text-muted-foreground text-sm">Notes</span>
+                    <p className="text-sm mt-1 p-2 bg-muted/50 rounded">{location.clientNotes}</p>
                   </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Phone</span>
-                    <a href={`tel:${location.contactPhone}`} className="text-primary">{location.contactPhone || 'N/A'}</a>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Priority</span>
-                    <span className="capitalize">{location.priority || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Status</span>
-                    <StatusBadge status={location.status} />
-                  </div>
-                  {location.clientNotes && (
-                    <div className="pt-2">
-                      <span className="text-muted-foreground text-sm">Notes</span>
-                      <p className="text-sm mt-1 p-2 bg-muted/50 rounded">{location.clientNotes}</p>
-                    </div>
-                  )}
-                </div>
-              </>
+                )}
+              </div>
             )}
           </TabsContent>
 

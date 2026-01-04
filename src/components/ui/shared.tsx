@@ -1,9 +1,50 @@
 // DRY Shared UI Components - Consolidated from LocationModal, LocationList, CalendarView, WeeklyPlanner, Settings, RouteSummary, TrafficDashboard
 import { type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 import { Droplets, Fish, Waves, type LucideIcon } from 'lucide-react';
 import { cn, getDaysUntil } from '@/lib/utils';
 import { PRIORITY_COLORS, type Priority, type TankType } from '@/lib/constants';
+
+// ResponsiveModal - DRY pattern for Dialog (desktop) / Drawer (mobile)
+// Used in: LocationModal, ServiceCompletionModal, RouteConfirmationModal
+interface ResponsiveModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  children: ReactNode;
+  className?: string;
+}
+
+export function ResponsiveModal({ open, onOpenChange, title, children, className }: ResponsiveModalProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className={cn('max-h-[95vh]', className)}>
+          <DrawerHeader>
+            <DrawerTitle>{title}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4 overflow-y-auto">{children}</div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={cn('max-w-md max-h-[85vh] overflow-y-auto', className)}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // Priority indicator dot - consolidated from LocationModal.PriorityBadge & LocationList.PriorityDot
 export function PriorityDot({ priority, className }: { priority?: Priority; className?: string }) {

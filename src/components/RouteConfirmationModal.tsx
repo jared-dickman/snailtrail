@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useIsMobile } from '@/hooks/useMediaQuery';
-import { Droplets, Clock, MapPin, Play, Plus, X, AlertCircle } from 'lucide-react';
+import { ResponsiveModal } from '@/components/ui/shared';
+import { Droplets, Play, Plus, X, AlertCircle } from 'lucide-react';
 import type { DaySchedule, ScheduledStop } from '@/types/schedule';
 
 interface RouteConfirmationModalProps {
@@ -191,45 +189,21 @@ function ConfirmationContent({ schedule, onConfirm, onUpdateStop, onClose }: {
 }
 
 export function RouteConfirmationModal({ schedule, open, onOpenChange, onConfirm, onUpdateStop }: RouteConfirmationModalProps) {
-  const isMobile = useIsMobile();
-
   if (!schedule) return null;
 
-  const handleClose = () => onOpenChange(false);
-
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="max-h-[95vh]">
-          <DrawerHeader>
-            <DrawerTitle>Confirm Today's Route</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-4 overflow-y-auto">
-            <ConfirmationContent
-              schedule={schedule}
-              onConfirm={onConfirm}
-              onUpdateStop={onUpdateStop}
-              onClose={handleClose}
-            />
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Confirm Today's Route</DialogTitle>
-        </DialogHeader>
-        <ConfirmationContent
-          schedule={schedule}
-          onConfirm={onConfirm}
-          onUpdateStop={onUpdateStop}
-          onClose={handleClose}
-        />
-      </DialogContent>
-    </Dialog>
+    <ResponsiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Confirm Today's Route"
+      className="max-w-lg"
+    >
+      <ConfirmationContent
+        schedule={schedule}
+        onConfirm={onConfirm}
+        onUpdateStop={onUpdateStop}
+        onClose={() => onOpenChange(false)}
+      />
+    </ResponsiveModal>
   );
 }

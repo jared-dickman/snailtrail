@@ -10,7 +10,7 @@ const LOCATIONS_KEY = "snailtrail_locations";
 
 function generateSchedulesFromLocations(locations: ServiceLocation[]): Record<string, DaySchedule> {
   const today = new Date();
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Sunday start
   const schedules: Record<string, DaySchedule> = {};
 
   // Only schedule active locations with service schedules
@@ -21,7 +21,7 @@ function generateSchedulesFromLocations(locations: ServiceLocation[]): Record<st
   const byDay: Record<number, ServiceLocation[]> = {};
   schedulableLocations.forEach(loc => {
     // Use first preferred day or default to Monday
-    const firstDay = loc.serviceSchedule?.preferredDays?.[0] || 'Monday';
+    const firstDay = loc.serviceSchedule?.preferredDays?.[0] || 'Sunday';
     const dayIdx = DAY_INDEX_MAP[firstDay as DayOfWeek] ?? 0;
     if (!byDay[dayIdx]) byDay[dayIdx] = [];
     byDay[dayIdx].push(loc);
@@ -84,33 +84,51 @@ export function useSchedule(locations?: ServiceLocation[]) {
     }
   );
 
-  // Regenerate schedules when locations change and schedules are empty
+  // Sync locations with schedules: add missing, update stale embedded data
   useEffect(() => {
     if (!locations || locations.length === 0) return;
 
-    // Check if any active locations with schedules are missing from current schedules
-    const scheduledLocationIds = new Set(
-      Object.values(schedules)
-        .flatMap(day => day.stops)
-        .map(stop => stop.locationId)
-    );
+    const locationMap = new Map(locations.map(loc => [loc.id, loc]));
 
-    const missingLocations = locations.filter(
-      loc => loc.status === 'active' &&
-             loc.serviceSchedule &&
-             !scheduledLocationIds.has(loc.id)
-    );
+    setSchedules(prev => {
+      let hasChanges = false;
+      const updated = { ...prev };
 
-    if (missingLocations.length > 0) {
-      // Add missing locations to their preferred days
-      const today = new Date();
-      const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+      // 1. Sync existing stops with fresh location data
+      for (const key of Object.keys(updated)) {
+        const newStops = updated[key].stops.map(stop => {
+          const freshLocation = locationMap.get(stop.locationId);
+          if (freshLocation && JSON.stringify(stop.location) !== JSON.stringify(freshLocation)) {
+            hasChanges = true;
+            return { ...stop, location: freshLocation };
+          }
+          return stop;
+        });
+        if (hasChanges) {
+          updated[key] = { ...updated[key], stops: newStops };
+        }
+      }
 
-      setSchedules(prev => {
-        const updated = { ...prev };
+      // 2. Add missing locations with schedules
+      const scheduledLocationIds = new Set(
+        Object.values(updated)
+          .flatMap(day => day.stops)
+          .map(stop => stop.locationId)
+      );
+
+      const missingLocations = locations.filter(
+        loc => loc.status === 'active' &&
+               loc.serviceSchedule &&
+               !scheduledLocationIds.has(loc.id)
+      );
+
+      if (missingLocations.length > 0) {
+        hasChanges = true;
+        const today = new Date();
+        const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Sunday start
 
         missingLocations.forEach(loc => {
-          const firstDay = loc.serviceSchedule?.preferredDays?.[0] || 'Monday';
+          const firstDay = loc.serviceSchedule?.preferredDays?.[0] || 'Sunday';
           const dayIdx = DAY_INDEX_MAP[firstDay as DayOfWeek] ?? 0;
           const date = addDays(weekStart, dayIdx);
           const key = format(date, "yyyy-MM-dd");
@@ -126,17 +144,13 @@ export function useSchedule(locations?: ServiceLocation[]) {
           if (!updated[key]) {
             updated[key] = { date: key, stops: [] };
           }
-
-          // Only add if not already present
-          if (!updated[key].stops.some(s => s.locationId === loc.id)) {
-            updated[key].stops.push(stop);
-          }
+          updated[key].stops.push(stop);
         });
+      }
 
-        return updated;
-      });
-    }
-  }, [locations, schedules, setSchedules]);
+      return hasChanges ? updated : prev;
+    });
+  }, [locations, setSchedules]);
 
   const getScheduleForDate = useCallback(
     (date: Date): DaySchedule | undefined => schedules[format(date, "yyyy-MM-dd")],
